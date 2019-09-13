@@ -1,0 +1,9 @@
+
+/*
+!/*.md
+!/.gitignore
+
+!/ucore
+/ucore/bin
+/ucore/obj
+/ucore/.ycm_extra_conf.py
