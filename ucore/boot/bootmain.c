@@ -89,9 +89,9 @@ bootmain(void) {
     readseg((uintptr_t)ELFHDR, SECTSIZE * 8, 0);
 
     // is this a valid ELF?
-    if (ELFHDR->e_magic != ELF_MAGIC) {
-        goto bad;
-    }
+    //if (ELFHDR->e_magic != ELF_MAGIC) {
+    //    goto bad;
+    //}
 
     struct proghdr *ph, *eph;
 
@@ -106,9 +106,9 @@ bootmain(void) {
     // note: does not return
     ((void (*)(void))(ELFHDR->e_entry & 0xFFFFFF))();
 
-bad:
-    outw(0x8A00, 0x8A00);
-    outw(0x8A00, 0x8E00);
+//bad:
+    //outw(0x8A00, 0x8A00);
+    //outw(0x8A00, 0x8E00);
 
     /* do nothing */
     while (1);

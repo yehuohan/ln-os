@@ -478,7 +478,9 @@ S: Service time 服务时间
  - EDF(Earliest Deadline First) 最早期限调度
 最佳的动态优先级调度，Deadline越早优先级越高，执行Dealine最早的任务。
 
-## 同步问题
+# 同步问题
+
+## 互斥量
 
 ### Critial Section（临界区）
 
@@ -501,14 +503,14 @@ bool flag[];    // 指示进程是否准备好进入临界区
 
 // Thread a                         // Thread b
 do {                                do {
-  flag[a] = true;                     flag[b] = true;
-  turn = b;                           turn = a;
-  while (flag[b] && turn == b);       while (flag[a] && turn == a);
-  enter_critial_section();            enter_critial_section();
+    flag[a] = true;                         flag[b] = true;
+    turn = b;                               turn = a;
+    while (flag[b] && turn == b);           while (flag[a] && turn == a);
+    enter_critial_section();                enter_critial_section();
 
-  flag[a] = false;                    flag[b] = false;
-  exit_critial_section();             exit_critial_section();
-} while(true);                      } while(true);
+    flag[a] = false;                        flag[b] = false;
+    exit_critial_section();                 exit_critial_section();
+}   while(true);                      }     while(true);
 
 ```
 
@@ -521,9 +523,9 @@ Test-and-set（测试和置位）：
 ```cpp
 // 从内存取值 -> 测试值是否为1（返回真或假）-> 内存值设置为1
 bool TestAndSet(bool *tartget) {
-  bool = rv = *target;
-  *target = true;
-  return rv;
+    bool rv = *target;
+    *target = true;
+    return rv;
 }
 ```
 
@@ -532,9 +534,9 @@ Exchange（交换）：
 ```cpp
 // 交换两个内存值并返回
 void Exchange(bool *a, bool *b) {
-  bool tmp = *a;
-  *a = *b;
-  *b = tmp;
+    bool tmp = *a;
+    *a = *b;
+    *b = tmp;
 }
 ```
 
@@ -542,29 +544,29 @@ void Exchange(bool *a, bool *b) {
 
 ```cpp
 class Lock {
-  int value = 0;
-  WaitQueue q;
+    int value = 0;
+    WaitQueue q;
 }
 
 // 忙等待方式
 Lock::Acquire() {
-  while (TestAndSet(value));
+    while (TestAndSet(value));
 }
 Lock::Release() {
-  value = 0;
+    value = 0;
 }
 
 // 无忙等待方式
 Lock::Acquire() {
-  while (TestAndSet(value)) {
-    q.add(current_TCB);
-    schedule();
-  };
+    while (TestAndSet(value)) {
+        q.add(current_TCB);
+        schedule();
+    };
 }
 Lock::Release() {
-  value = 0;
-  q.remove(current_TCB);
-  wakeup();
+    value = 0;
+    q.remove(current_TCB);
+    wakeup();
 }
 ```
 
@@ -573,4 +575,71 @@ Lock::Release() {
 
 ### Dead Lock（死锁）
 
+两个或以上的进程，在相互等待对方完成特定任务，而最终没法将自身任务进行下去。
+
 ### Starvation（饥饿）
+
+一个可执行的进程，被调度器忽略，虽然处于可执行状态但却不被执行。
+
+## 信号量
+
+### 基本原理
+
+一个整型(sem)，两个原子操作：
+
+ - P(): sem-1，当sem<0，睡眠等待，否则继续
+ - V(): sem+1，当sem<=0，唤醒一个等待的进程
+
+```cpp
+// 生产者消费者模型
+class BoundedBuffer {
+    mutex = new Semaphore(1);           // 互斥信号量，保证Buffe数据同步
+    fullBuffer = new Semaphore(0);      // 开始Buffer可用数据为0
+    emptyBuffer = new Semaphore(n);     // 开始Buffer可用空间为n
+}
+BoundedBuffer::Deposit(c) {
+    emptyBuffer()->P();                 // Buffer可用空间减1
+    mutex->P();                         // 获取锁，开始修改Buffer
+    <Add c to the buffer>;
+    mutex->V();                         // 释放锁
+    fullBuffer->V();                    // Buffer可用数据加1
+}
+BoundedBuffer::Remove(c) {
+    fullBuffer->P();                    // Buffer可用数据减1
+    mutex->P();                         // 获取锁，开始修改Buffer
+    <Remove c from the buffer>;
+    mutex->V();                         // 释放锁
+    emptyBuffer()->V();                 // Buffer可用空间加1
+}
+```
+
+### 实现
+
+```cpp
+class Semaphore {
+    int sem;
+    WaitQueue queue;
+}
+Semaphore::P() {
+    sem --;
+    if (sem < 0) {
+        <Add this thread t to queue>;
+        Block(p);
+    }
+}
+Semaphore::V() {
+    sem ++;
+    if (sem <= 0) {
+        <Remove a threat t from queue>;
+        Wakeup(t);
+    }
+}
+```
+
+## 管程
+
+目的：分离互斥和条件同步的关注
+
+管程定义：
+ - 一个锁：指定临界区
+ - 0或多个条件变量：等待/通知信号用于管理并发访问共享数据

@@ -124,8 +124,7 @@ __sfs_bin_$(1): $(1)
 endef
 copy_files = $(foreach line,$(1),$(eval $(call do_sfs_bin_copy,$(line),$(2))))
 
-
-$(call make_dir)
+$(eval $(call make_dir))
 libs_src_files := $(call get_src,$(LIBS_DIR), $(CTYPE))
 libs_obj_files := $(call get_obj,$(OBJ_DIR),$(libs_src_files))
 
@@ -191,7 +190,7 @@ $(bootblock_bin): $(bootblock_obj) $(sign_bin)
 	$(V)echo "... making boot ..."
 	$(V)$(OBJDUMP) -S $< > $@.asm
 	$(V)$(OBJCOPY) -S -O binary $< $@.out
-	#$(V)$(sign_bin) $@.out $@
+	$(V)$(sign_bin) $@.out $@
 
 $(bootblock_obj): $(boot_obj_files)
 	$(V)$(LD) $(BLDFLAGS) $^ -o $@
