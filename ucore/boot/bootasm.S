@@ -98,10 +98,10 @@ spin:
 # Bootstrap GDT
 .p2align 2                                          # force 4 byte alignment
 gdt:
-    SEG_NULLASM                                     # null seg
-    SEG_ASM(STA_X|STA_R, 0x0, 0xffffffff)           # code seg for bootloader and kernel
-    SEG_ASM(STA_W, 0x0, 0xffffffff)                 # data seg for bootloader and kernel
+    SEG_NULLASM                                     # null seg, 8 bytes
+    SEG_ASM(STA_X|STA_R, 0x0, 0xffffffff)           # code seg for bootloader and kernel, 8 bytes，可读可执行
+    SEG_ASM(STA_W, 0x0, 0xffffffff)                 # data seg for bootloader and kernel, 8 bytes，可写
 
 gdtdesc:
-    .word 0x17                                      # sizeof(gdt) - 1
+    .word 0x17                                      # sizeof(gdt) - 1 = 23 bytes
     .long gdt                                       # address gdt

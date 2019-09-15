@@ -1,8 +1,11 @@
 
 # ucore OS(x86) learning
 
-All copyrights belong to [ucore os lab](https://github.com/chyyuu/ucore_os_lab).
+All code belong to [ucore os lab](https://github.com/chyyuu/ucore_os_lab).
 
+ - gcc: V4.8.2
+ - ld: GNU ld 2.24
+ - linux: Ubuntu14.04
 
 # boot
 
