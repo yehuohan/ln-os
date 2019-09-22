@@ -1,6 +1,11 @@
 
 #===============================================================================
-# Paths and directories
+# Directories
+# LIBS: 库文件，kern和user编译的依赖之一
+# BOOT: bootloader文件
+# KERN: 内核文件(kern)
+# USER: 用户命令程序文件
+# SFS: 文件系统目录，里面存放用户命令
 #===============================================================================
 LIBS_DIR     := libs
 SRC_BOOT_DIR := boot
@@ -49,14 +54,18 @@ BIN_DIR      := bin
 
 #===============================================================================
 # Commands
+# CFLAGS: 编译LIBS的参数
+# BCFLAGS, BLDFLAGS: 编译BOOT的参数
+# KCFLAGS, KLDFLAGS: 编译KERN的参数
+# UCFLAGS, ULDFLAGS: 编译USER的参数
 #===============================================================================
 CC		:= gcc
 GDB		:= gdb
 CTYPE	:= c S
-CFLAGS	:= -Wall -ggdb -m32 -Os -gstabs -fno-builtin -nostdinc
+CFLAGS	:= -Wall -ggdb -m32 -gstabs -fno-builtin -nostdinc
 CFLAGS	+= $(shell $(CC) -fno-stack-protector -E -x c /dev/null >/dev/null 2>&1 && echo -fno-stack-protector)
 CFLAGS	+= $(addprefix -I, $(LIBS_DIR))
-BCFLAGS := $(CFLAGS)
+BCFLAGS := $(CFLAGS) -Os
 BCFLAGS	+= $(addprefix -I, $(INC_BOOT_DIR))
 KCFLAGS := $(CFLAGS)
 KCFLAGS += $(addprefix -I, $(INC_KERN_DIR))
@@ -71,7 +80,7 @@ ULDFLAGS:= -m elf_i386 -nostdlib -T tools/user.ld
 OBJCOPY := objcopy
 OBJDUMP := objdump
 
-#V		:= @
+V		:= @
 COPY	:= cp
 MKDIR   := mkdir -p
 MV		:= mv
@@ -120,7 +129,7 @@ create_bin_target = $(foreach line,$(3),$(eval $(call do_create_bin_target,$(1),
 # copy user bins to sfs: (#bin_file, #sfs_bin_dir)
 define do_sfs_bin_copy
 __sfs_bin_$(1): $(1)
-	$(V)$(COPY) $(1) $(2)
+	@$(COPY) $(1) $(2)
 endef
 copy_files = $(foreach line,$(1),$(eval $(call do_sfs_bin_copy,$(line),$(2))))
 
@@ -163,7 +172,7 @@ SWAPIMG  := $(BIN_DIR)/swap.img
 # ucore.img在硬盘上的分布：
 # 		第一个扇区为引导代码(bootblock)，即bootloader
 # 		第二个扇区开始为kernel代码
-$(UCOREIMG): $(libs_obj_files) $(bootblock_bin) $(kernel_bin) $(SWAPIMG) $(FSIMG)
+$(UCOREIMG): $(libs_obj_files) $(bootblock_bin) $(kernel_bin)
 	$(V)echo
 	$(V)echo "... making ucore ..."
 	$(V)dd if=/dev/zero of=$@ count=10000
@@ -178,7 +187,6 @@ $(SWAPIMG):
 $(FSIMG): $(mksfs_bin) $(sfs_bins)
 	$(V)echo
 	$(V)echo "... making fs ..."
-	$(V)$(COPY) $(BIN_DIR)/user/* $(SFS_BIN_DIR)
 	$(V)dd if=/dev/zero of=$@ bs=1M count=128
 	$(mksfs_bin) $@ $(SFS_ROOT_DIR)
 
@@ -215,10 +223,10 @@ $(call copy_files,$(user_bins),$(SFS_BIN_DIR))
 
 # tools
 $(sign_bin): $(sign_src_files)
-	$(V)$(CC) -g -Wall -O2 $^ -o $@
+	$(V)$(CC) -g -Wall -O2 -D_FILE_OFFSET_BITS=64 $^ -o $@
 
 $(mksfs_bin): $(mksfs_src_files)
-	$(V)$(CC) -g -Wall -O2 $^ -o $@
+	$(V)$(CC) -g -Wall -O2 -D_FILE_OFFSET_BITS=64 $^ -o $@
 
 .PHONY: test
 test:
@@ -239,14 +247,15 @@ test:
 # Targets for qemu
 #===============================================================================
 QEMU := qemu-system-i386
+QEMUOPTS = -hda $(UCOREIMG) -drive file=$(SWAPIMG),media=disk,cache=writeback -drive file=$(FSIMG),media=disk,cache=writeback
 TERMINAL := xfce4-terminal
 
-.PHONY: qemu
-qemu: $(UCOREIMG)
-	$(V)$(QEMU) -parallel stdio -hda $< -serial null
+.PHONY: qemu debug
+qemu: $(UCOREIMG) $(SWAPIMG) $(FSIMG)
+	$(V)$(QEMU) -parallel stdio $(QEMUOPTS) -serial null
 
-debug: $(UCOREIMG)
-	$(V)$(QEMU) -S -s -parallel stdio -hda $< -serial null &
+debug: $(UCOREIMG) $(SWAPIMG) $(FSIMG)
+	$(V)$(QEMU) -S -s -parallel stdio $(QEMUOPTS) -serial null &
 	$(V)sleep 2
 	$(V)$(TERMINAL) -e "$(GDB) -q -x tools/gdbinit"
 
