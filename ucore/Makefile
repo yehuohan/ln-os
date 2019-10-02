@@ -248,7 +248,7 @@ test:
 #===============================================================================
 QEMU := qemu-system-i386
 QEMUOPTS = -hda $(UCOREIMG) -drive file=$(SWAPIMG),media=disk,cache=writeback -drive file=$(FSIMG),media=disk,cache=writeback
-TERMINAL := xfce4-terminal
+TERMINAL := gnome-terminal
 
 .PHONY: qemu debug
 qemu: $(UCOREIMG) $(SWAPIMG) $(FSIMG)

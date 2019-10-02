@@ -3,6 +3,8 @@
 
 All code belong to [ucore os lab](https://github.com/chyyuu/ucore_os_lab).
 
+Reference at [ucore os docs](https://github.com/chyyuu/ucore_os_docs).
+
  - gcc: V4.8.2
  - ld: GNU ld 2.24
  - linux: Ubuntu14.04
@@ -47,4 +49,28 @@ bootmain.c的主要作用是从硬盘中加载ELF格式的ucore系统内核kerne
 
 kern是内核代码。
 
- - init: 系统初始化代码。
+## init
+
+系统内核初始化代码。
+
+ - cons_init(): 用于初始化console控制终端，可以向终端打印信息
+
+ - debug_init(): debug registers
+ - pmm_init(): 初始化物理内存管理模块
+
+ - pic_init(): 中断控制器初始化，把外设中断变成中断号传给CPU处理
+ - idt_init(): 初始化中断向量表
+
+ - vmm_init(): 初始化虚拟内存管理模块
+ - sched_init(): init scheduler
+ - proc_init(): init process table
+ - sync_init(): init sync struct
+
+ - ide_init(): init ide devices
+ - swap_init(): init swap
+ - fs_init(): init fs
+
+ - clock_init(): 初始化时钟中断
+ - intr_enable(): 使能中断
+
+ - cpu_idle(): run idle process
