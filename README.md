@@ -1,5 +1,7 @@
 
-# OS(x86) learning
+# os
+
+OS(x86) learning.
 
 视频教程：
  - [操作系统](http://www.xuetangx.com/courses/course-v1:TsinghuaX+30240243X+sp/about)
