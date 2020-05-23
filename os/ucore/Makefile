@@ -2,7 +2,8 @@
 #===============================================================================
 # Directories
 # LIBS: 库文件，kern和user编译的依赖之一
-# BOOT: bootloader文件
+# BOOT: bootloader
+# MBOOT: multiboot
 # KERN: 内核文件(kern)
 # USER: 用户命令程序文件
 # SFS: 文件系统目录，里面存放用户命令
@@ -10,6 +11,8 @@
 LIBS_DIR     := libs
 SRC_BOOT_DIR := boot
 INC_BOOT_DIR := boot
+SRC_MBOOT_DIR := mboot
+INC_MBOOT_DIR := mboot
 SRC_KERN_DIR := kern/debug \
 				kern/driver \
 				kern/fs \
@@ -55,7 +58,6 @@ BIN_DIR      := bin
 #===============================================================================
 # Commands
 # CFLAGS: 编译LIBS的参数
-# BCFLAGS, BLDFLAGS: 编译BOOT的参数
 # KCFLAGS, KLDFLAGS: 编译KERN的参数
 # UCFLAGS, ULDFLAGS: 编译USER的参数
 #===============================================================================
@@ -65,27 +67,25 @@ CTYPE	:= c S
 CFLAGS	:= -Wall -ggdb -m32 -gstabs -fno-builtin -nostdinc
 CFLAGS	+= $(shell $(CC) -fno-stack-protector -E -x c /dev/null >/dev/null 2>&1 && echo -fno-stack-protector)
 CFLAGS	+= $(addprefix -I, $(LIBS_DIR))
-BCFLAGS := $(CFLAGS) -Os
-BCFLAGS	+= $(addprefix -I, $(INC_BOOT_DIR))
 KCFLAGS := $(CFLAGS)
 KCFLAGS += $(addprefix -I, $(INC_KERN_DIR))
 UCFLAGS := $(CFLAGS)
 UCFLAGS += $(addprefix -I, $(INC_USER_DIR))
 
 LD      := ld
-BLDFLAGS:= -m elf_i386 -nostdlib -N -e start -Ttext 0x7C00
 KLDFLAGS:= -m elf_i386 -nostdlib -T tools/kernel.ld
+MLDFLAGS:= -m elf_i386 -nostdlib -T mboot/link.ld
 ULDFLAGS:= -m elf_i386 -nostdlib -T tools/user.ld
 
 OBJCOPY := objcopy
 OBJDUMP := objdump
 
-V		:= @
+#V		:= @
 COPY	:= cp
 MKDIR   := mkdir -p
 MV		:= mv
 RM		:= rm -f
-SED 	:= sed
+SED		:= sed
 
 
 #===============================================================================
@@ -94,12 +94,12 @@ SED 	:= sed
 # make directories
 define make_dir
 	$(foreach str,\
-			  $(addprefix $(OBJ_DIR)/,$(SRC_BOOT_DIR) $(SRC_KERN_DIR) $(SRC_USER_DIR) $(LIB_USER_DIR) $(LIBS_DIR)),\
-			  $(shell $(MKDIR) $(str)))
+				$(addprefix $(OBJ_DIR)/,$(SRC_BOOT_DIR) $(SRC_MBOOT_DIR) $(SRC_KERN_DIR) $(SRC_USER_DIR) $(LIB_USER_DIR) $(LIBS_DIR)),\
+				$(shell $(MKDIR) $(str)))
 	$(shell $(MKDIR) $(BIN_DIR))
 	$(foreach str,\
-			  $(addprefix $(BIN_DIR)/,$(SRC_USER_DIR)),\
-			  $(shell $(MKDIR) $(str)))
+				$(addprefix $(BIN_DIR)/,$(SRC_USER_DIR)),\
+				$(shell $(MKDIR) $(str)))
 	$(shell $(MKDIR) $(SFS_BIN_DIR))
 endef
 
@@ -137,15 +137,13 @@ $(eval $(call make_dir))
 libs_src_files := $(call get_src,$(LIBS_DIR), $(CTYPE))
 libs_obj_files := $(call get_obj,$(OBJ_DIR),$(libs_src_files))
 
-boot_src_files := $(call get_src,$(SRC_BOOT_DIR),$(CTYPE))
-boot_obj_files := $(call get_obj,$(OBJ_DIR),$(boot_src_files))
-bootblock_obj  := $(OBJ_DIR)/bootblock
-bootblock_bin  := $(BIN_DIR)/bootblock
+bootblock := $(BIN_DIR)/bootblock
 
 kernel_src_files := $(call get_src,$(SRC_KERN_DIR),$(CTYPE))
 kernel_obj_files := $(call get_obj,$(OBJ_DIR),$(kernel_src_files))
 kernel_obj_files += $(libs_obj_files)
 kernel_bin 		 := $(BIN_DIR)/kernel
+grub_kernel_bin  := $(BIN_DIR)/grub_kernel
 
 user_bin_src_files := $(call get_src, $(SRC_USER_DIR), $(CTYPE))
 user_lib_src_files := $(call get_src, $(LIB_USER_DIR), $(CTYPE))
@@ -168,15 +166,14 @@ SWAPIMG  := $(BIN_DIR)/swap.img
 #===============================================================================
 # Targets for ucore
 #===============================================================================
-# images
-# ucore.img在硬盘上的分布：
+# ucore.img
 # 		第一个扇区为引导代码(bootblock)，即bootloader
 # 		第二个扇区开始为kernel代码
-$(UCOREIMG): $(libs_obj_files) $(bootblock_bin) $(kernel_bin)
+$(UCOREIMG): $(libs_obj_files) $(bootblock) $(kernel_bin)
 	$(V)echo
 	$(V)echo "... making ucore ..."
 	$(V)dd if=/dev/zero of=$@ count=10000
-	$(V)dd if=$(bootblock_bin) of=$@ conv=notrunc
+	$(V)dd if=$(bootblock) of=$@ conv=notrunc
 	$(V)dd if=$(kernel_bin) of=$@ seek=1 conv=notrunc
 
 $(SWAPIMG):
@@ -192,24 +189,36 @@ $(FSIMG): $(mksfs_bin) $(sfs_bins)
 
 $(call create_obj_target,$(OBJ_DIR),$(libs_src_files),$(CFLAGS))
 
-# bootblock
-$(bootblock_bin): $(bootblock_obj) $(sign_bin)
+# bootloader
+$(bootblock): $(sign_bin)
 	$(V)echo
 	$(V)echo "... making boot ..."
-	$(V)$(OBJDUMP) -S $< > $@.asm
-	$(V)$(OBJCOPY) -S -O binary $< $@.out
+	$(V)$(CC) $(CFLAGS) -Os $(addprefix -I, $(INC_BOOT_DIR)) -c $(SRC_BOOT_DIR)/bootasm.S -o $(OBJ_DIR)/$(SRC_BOOT_DIR)/bootasm.o
+	$(V)$(CC) $(CFLAGS) -Os $(addprefix -I, $(INC_BOOT_DIR)) -c $(SRC_BOOT_DIR)/bootmain.c -o $(OBJ_DIR)/$(SRC_BOOT_DIR)/bootmain.o
+	$(V)$(LD) -m elf_i386 -nostdlib -N -e start -Ttext 0x7C00 $(OBJ_DIR)/$(SRC_BOOT_DIR)/bootasm.o $(OBJ_DIR)/$(SRC_BOOT_DIR)/bootmain.o -o $@.obj
+	$(V)$(OBJDUMP) -S $@.obj > $@.asm
+	$(V)$(OBJCOPY) -S -O binary $@.obj $@.out
 	$(V)$(sign_bin) $@.out $@
 
-$(bootblock_obj): $(boot_obj_files)
-	$(V)$(LD) $(BLDFLAGS) $^ -o $@
+# multiboot
+mboot: $(grub_kernel_bin)
+	$(V)echo build kernel with multiboot
 
-$(call create_obj_target,$(OBJ_DIR),$(boot_src_files),$(BCFLAGS))
-
-# kernel
+# kernel with bootloader
 $(kernel_bin): $(kernel_obj_files)
 	$(V)echo
 	$(V)echo "... making kernel..."
 	$(V)$(LD) $(KLDFLAGS) $^ -o $@
+	$(V)$(OBJDUMP) -S $@ > $@.asm
+	$(V)$(OBJDUMP) -t $@ | $(SED) '1,/SYMBOL TABLE/d; s/ .* / /; /^$$/d' > $@.sym
+
+# kernel with multiboot
+$(grub_kernel_bin): $(kernel_obj_files)
+	$(V)echo
+	$(V)echo "... making grub kernel..."
+	$(V)nasm -felf32 -g -o $(OBJ_DIR)/$(SRC_MBOOT_DIR)/entry.o $(SRC_MBOOT_DIR)/entry.asm
+	$(V)$(CC) $(KCFLAGS) $(addprefix -I, $(INC_MBOOT_DIR)) -c $(SRC_MBOOT_DIR)/multiboot.c -o $(OBJ_DIR)/$(SRC_MBOOT_DIR)/multiboot.o
+	$(V)$(LD) $(MLDFLAGS) $^ $(OBJ_DIR)/$(SRC_MBOOT_DIR)/entry.o $(OBJ_DIR)/$(SRC_MBOOT_DIR)/multiboot.o -o $@
 	$(V)$(OBJDUMP) -S $@ > $@.asm
 	$(V)$(OBJDUMP) -t $@ | $(SED) '1,/SYMBOL TABLE/d; s/ .* / /; /^$$/d' > $@.sym
 
@@ -233,8 +242,6 @@ test:
 	@echo
 	@echo $(libs_src_files)
 	@echo $(libs_obj_files)
-	@echo $(boot_src_files)
-	@echo $(boot_obj_files)
 	@echo $(kernel_src_files)
 	@echo $(kernel_obj_files)
 	@echo $(user_bin_src_files)
@@ -250,12 +257,20 @@ QEMU := qemu-system-i386
 QEMUOPTS = -hda $(UCOREIMG) -drive file=$(SWAPIMG),media=disk,cache=writeback -drive file=$(FSIMG),media=disk,cache=writeback
 TERMINAL := gnome-terminal
 
-.PHONY: qemu debug
+.PHONY: qemu qemu-boot debug
 qemu: $(UCOREIMG) $(SWAPIMG) $(FSIMG)
 	$(V)$(QEMU) -parallel stdio $(QEMUOPTS) -serial null
 
+qemu-mboot: $(mboot)
+	$(V)$(QEMU) -kernel $(grub_kernel_bin)
+
 debug: $(UCOREIMG) $(SWAPIMG) $(FSIMG)
 	$(V)$(QEMU) -S -s -parallel stdio $(QEMUOPTS) -serial null &
+	$(V)sleep 2
+	$(V)$(TERMINAL) -e "$(GDB) -q -x tools/gdbinit"
+
+debug-mboot: $(mboot)
+	$(V)$(QEMU) -S -s -kernel $(grub_kernel_bin) &
 	$(V)sleep 2
 	$(V)$(TERMINAL) -e "$(GDB) -q -x tools/gdbinit"
 
