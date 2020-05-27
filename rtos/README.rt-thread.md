@@ -1,8 +1,8 @@
 
 ---
-# [mem](https://www.rt-thread.org/document/site/programming-manual/memory/memory/)
+# [memory](https://www.rt-thread.org/document/site/programming-manual/memory/memory/)
 
-- 最小内存管理
+- 最小内存管理(mem)
 
 
 ---
@@ -20,6 +20,11 @@
  - 轮调：优先级相同时，会根据thread的时间片，轮调每个thread；
 
 thread除了等待时间片结束时让出cpu外，还可以通过`sleep, yiled`等函数主动让出cpu资源。
+
+thread让出CPU控制权有2种方式：
+
+ - 主动：时间片结束时让出CPU，同时调度下一个thread
+ - 被动：thread自己调用`sleep, yiled`等函数主动让出CPU
 
 ## timer
 
