@@ -4,12 +4,3 @@
 /*
 !/*.md
 !/.gitignore
-
-!/ucore
-/ucore/bin
-/ucore/obj
-/ucore/disk0/bin
-/ucore/.ycm_extra_conf.py
-/ucore/tags
-/ucore/compile_flags.txt
-/ucore/run.*
