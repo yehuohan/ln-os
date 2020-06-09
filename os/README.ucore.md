@@ -2,9 +2,9 @@
 ---
 # ucore OS(x86) learning
 
-- code from [ucore os lab](https://github.com/chyyuu/ucore_os_lab).
-- docs from [ucore os docs](https://chyyuu.gitbooks.io/ucore_os_docs), [simple os book](https://chyyuu.gitbooks.io/simple_os_book/)
-- x86: intel 64 位和 IA-32 架构软件开发人员手册
+- code from [ucore os lab](https://github.com/chyyuu/ucore_os_lab)
+- docs from [ucore os docs](https://github.com/chyyuu/ucore_os_docs)
+- x86: Intel 64 位和 IA-32 架构软件开发人员手册
 
 ---
 # boot
@@ -467,4 +467,35 @@ initproc:
         init_main ---> schedule ---> ...
                   \
                    ·---> __alltraps ---> ...
+```
+
+### wait-queue
+
+- 进程主动sleep时，进程放入等待队列中；
+- 事件发生时（睡眠结束、资源可用等），进程从等待队列清除，变成就绪状态；
+
+```
+      wait-queue:                 +......-
+                                 /        \              schedule
+            proc:  ---> sleep ---          \ event     ------------>
+                                            \         /
+  runnable-queue:                            +.......-
+```
+
+### semaphore
+
+信号量基于中断机制和等待队列实现。
+
+```
+semaphore_t.value
+semaphore_t.wait_queue
+
+      P(down)
+proc ---------> .value > 0 ? ---> .value - 1
+     \                       \
+      \                       ---> wait(.wait_queue, current) ---> schedule
+       \ V(up)
+        ------> empty(.wait_queue) ? ---> .value + 1
+                                     \
+                                      ---> wakeup(.wait_queue)
 ```
