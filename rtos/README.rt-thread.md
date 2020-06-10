@@ -2,8 +2,62 @@
 ---
 # [memory](https://www.rt-thread.org/document/site/programming-manual/memory/memory/)
 
-- 最小内存管理(mem)
+```
+  ·------------·
+  |  RO/RW/ZI  |
+  |------------| ---> free memory start
+  |            |
+  |            |
+  |            |
+  ·------------· ---> free memory end
+```
 
+- 最小内存管理(mem.c)
+
+空闲内存使用`rt_uint8_t *heap_ptr`指向起始地址，在本质上，即通过一个字节数组管理所有空闲内存。
+
+对于每一块内存，通过`head_mem`加上一个`heap_size`来管理
+
+
+```
+  ·------------· ---> heap_ptr (free memory start)
+  |  heap_mem  | ---> heap_mem.next = sizeof(head_mem) + sizeof(A)      : 指定下一块内存heap_mem的位置
+  |------------|
+  |     A      |
+  |            |
+  |------------| ---> heap_b = heap_ptr + sizeof(head_mem) + sizeof(A)  : 用于内存管理的地址
+  |  head_mem  |
+  |------------| ---> ptr_b = heap_b + sizeof(heap_mem)                 : 使用malloc返回的地址
+  |            |
+  |     B      | ---> ptr_b[]                                           : 代表的连续内存块，大小为sizeof(B)
+  |            |
+  |------------|
+  |            |
+  |------------| ---> head_end = head_ptr + sizeof(free memory) - sizeof(heap_mem)
+  |  head_mem  |
+  ·------------· ---> (free memory end)
+```
+
+- slab内存管理(slab.c)
+
+```
+  ·------------· ---> heap_start (free memory start)
+  |  memusage  | ---> memusage[(addr - heap_start)/4K] : 管理所有page
+  |------------|
+  |            |
+  |------------| ---> addr_a : malloc的size>zone_limit，直接返回page
+  | a个page内存|
+  |            |
+  |------------|
+  |            |
+  |------------| ---> addr_b : malloc的size<zone_limit，使用slab_zone，一个slab_zone可以管理多个size大小的内存块
+  | slab_zone  |               一个slab_zone占用 zone_size/4K 个页
+  |            |
+  | b个page内存|               size ---> slab_zone = zone_array(zoneindex(size))
+  |------------|
+  |            |
+  ·------------· ---> (free memory end)
+```
 
 ---
 # [thread](https://www.rt-thread.org/document/site/programming-manual/thread/thread/)
