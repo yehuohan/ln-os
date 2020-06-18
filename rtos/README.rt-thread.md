@@ -131,3 +131,8 @@ thread -------------> value > 0 ? ---> value - 1
 ### mutex
 
 互斥量`rt_mutex_t`也是将获取不到锁的thread放在`rt_ipc_object.suspend_thread`上，同时thread在获取锁时，会临时继承优先级，防止优先级倒置。
+
+# device
+
+- [IO设备](https://www.rt-thread.org/document/site/programming-manual/device/device/)
+

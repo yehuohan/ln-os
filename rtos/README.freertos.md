@@ -1,4 +1,5 @@
 
+---
 # Task
 
 ## [Task implemntation](https://www.freertos.org/implementation/main.html)
@@ -34,6 +35,7 @@ log     Idle Task   ----          ----------------
  - `Queue`: Blocking when attempt to read empty queue or write full queue. `critical` is required.
 
 
+---
 # Ports
 
 ## Arm Cortex-M(stm32)
@@ -45,3 +47,30 @@ log     Idle Task   ----          ----------------
 - `Mutex`: Use binary semaphore.
 - `xxxFromISR`: Function called from interrupt function.
 
+
+---
+# [ESP-IDF](https://docs.espressif.com/projects/esp-idf/zh_CN/latest/esp32/api-guides/freertos-smp.html)
+
+ESP-IDF基于FreeRtos，支持SMP。
+
+## Critical
+
+SMP通过中断，只能做到一个Core的同步，其它的Core还是可以正常运行。
+
+SMP通过“中断+SpinLock”实现Critical，一个Core获取的mux后，其它的Core一直Spin，等待mux释放。
+
+```
+taskENTER_CRITICAL(mux) ---> portENTER_CRITICAL(mux) ---> vTaskEnterCritical(mux)
+
+        CPU0                        CPU1
+          |                           |
+taskENTER_CRITICAL(mux)     taskENTER_CRITICAL(mux)
+          |                           |
+    dis-interrupt               dis-interrupt
+          |                           |
+       mux.lock             spin until mux.unlock
+          |                           |
+    dis-scheduler                    ...
+          |
+         ...
+```
