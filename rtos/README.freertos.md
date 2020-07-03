@@ -49,6 +49,35 @@ log     Idle Task   ----          ----------------
 
 
 ---
+# Memory
+
+可以选择`heap_1.c ~ heap_5.c`共5种堆内存管理方式，堆的大小可以用`configTOTAL_HEAP_SIZE`配置。
+
+- heap_5
+
+`heap_5`可以使用`vPortDefineHeapRegions()`将多个内存块信息保存在`BlockLink_t`中，链表结构如下：
+
+```
+              xStart.pxNextFreeBlock = a
+                    .xBlockSize = 0
+
+  ·-----------· -> a.pxNextFreeBlock = b
+  |-----------|     .xBlockSize = A
+  |     A     |
+  |-----------| -> b.pxNextFreeBlock = c
+  ·-----------·     .xBlockSize = 0
+
+  ·-----------· -> c.pxNextFreeBlock = d
+  |-----------|     .xBlockSize = B
+  |     B     |
+  |-----------| -> d.pxNextFreeBlock = pxEnd
+  ·-----------·     .xBlockSize = 0
+
+               pxEnd.pxNextFreeBlock = NULL
+                    .xBlockSize = 0
+```
+
+---
 # [ESP-IDF](https://docs.espressif.com/projects/esp-idf/zh_CN/latest/esp32/api-guides/freertos-smp.html)
 
 ESP-IDF基于FreeRtos，支持SMP。
