@@ -1,5 +1,7 @@
 
-- [linux 5.7.2](https://git.kernel.org/)
+# Linux
+
+- [linux](https://git.kernel.org/)
 - [KernelNewbies](https://kernelnewbies.org/)
 - [Documention](https://www.kernel.org/doc/html/latest/)
 - [linux-insides](https://github.com/0xAX/linux-insides/blob/master/SUMMARY.md)
