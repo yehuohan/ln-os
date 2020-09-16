@@ -13,7 +13,7 @@
 use core::panic::PanicInfo;
 
 #[cfg(not(test))]
-use rcore::println;
+use rcore::println; // bin使用lib，需要使用lib的名称rcore；lib相互之间使用，可以用crate
 
 
 /// Kernel入口函数
@@ -25,7 +25,22 @@ use rcore::println;
 pub extern "C" fn _start() -> ! {
     rcore::init();
 
-    loop {}
+    // page fault
+    //unsafe {
+    //    *(0xdeadbeef as *mut u64) = 12;
+    //};
+    // double fault
+    //fn statck_overflow() {
+    //    statck_overflow();
+    //}
+    //statck_overflow();
+    //loop {
+    //    use rcore::print;
+    //    for _ in 0..10000 {}
+    //    print!("-"); // deadlock
+    //}
+
+    rcore::hlt_loop();
 }
 
 /// kernel的painc处理函数
@@ -44,7 +59,7 @@ fn panic(info: &PanicInfo) -> ! {
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
     test_main();
-    loop {}
+    rcore::hlt_loop();
 }
 
 /// cargo bin测试程序的panic函数

@@ -19,11 +19,23 @@ extern crate rlibc;
 // 声明模块，内容在src/<mod>.rs或src/<mod>/mod.rs文件中
 pub mod vga_buffer;
 pub mod serial;
+pub mod interrupts;
+pub mod gdt;
 
+
+pub fn hlt_loop() -> ! {
+    loop {
+        x86_64::instructions::hlt();
+    }
+}
 
 /// kernel初始化函数
 pub fn init() {
-    println!("Hello rcore{}", "!");
+    println!("Hello rcore!");
+    gdt::init();
+    interrupts::init_idt();
+    unsafe { interrupts::PICS.lock().initialize(); };
+    x86_64::instructions::interrupts::enable(); // 使能中断
 }
 
 
@@ -87,7 +99,7 @@ pub fn exit_qemu(exit_code: QemuExitCode) {
 pub extern "C" fn _start() -> ! {
     init();
     test_main();
-    loop {}
+    hlt_loop();
 }
 
 /// cargo test的panic处理函数
