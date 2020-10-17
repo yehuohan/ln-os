@@ -34,6 +34,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "lnos"
+version = "0.1.0"
+dependencies = [
+ "bootloader",
+ "lazy_static",
+ "pc-keyboard",
+ "pic8259_simple",
+ "rlibc",
+ "spin",
+ "uart_16550",
+ "volatile",
+ "x86_64",
+]
+
+[[package]]
 name = "pc-keyboard"
 version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -46,21 +61,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "af2a5497fb8e59bf8015f67b7dff238d75ef445e03f23edac24ac3a8f09be952"
 dependencies = [
  "cpuio",
-]
-
-[[package]]
-name = "rcore"
-version = "0.1.0"
-dependencies = [
- "bootloader",
- "lazy_static",
- "pc-keyboard",
- "pic8259_simple",
- "rlibc",
- "spin",
- "uart_16550",
- "volatile",
- "x86_64",
 ]
 
 [[package]]

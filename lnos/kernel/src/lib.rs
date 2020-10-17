@@ -1,6 +1,6 @@
 //! kernel模块
 //!
-//! 将rcore的整个kernel作为一个库实现。
+//! 将lnos的整个kernel作为一个库实现。
 //!
 
 #![no_std]
@@ -31,7 +31,7 @@ pub fn hlt_loop() -> ! {
 
 /// kernel初始化函数
 pub fn init() {
-    println!("Hello rcore!");
+    println!("Hello lnos!");
     gdt::init();
     interrupts::init_idt();
     unsafe { interrupts::PICS.lock().initialize(); };

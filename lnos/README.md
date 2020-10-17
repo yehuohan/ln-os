@@ -1,5 +1,5 @@
 
-# rcore
+# lnos
 
 Learning rust and os.
 

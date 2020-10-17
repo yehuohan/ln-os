@@ -6,7 +6,7 @@
 #![reexport_test_harness_main = "test_main"]
 
 use core::panic::PanicInfo;
-use rcore::{QemuExitCode, exit_qemu, serial_println};
+use lnos::{QemuExitCode, exit_qemu, serial_println};
 
 #[no_mangle]
 pub extern "C" fn _start() -> ! {

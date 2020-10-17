@@ -1,5 +1,5 @@
 [package]
-name = "rcore"
+name = "lnos"
 version = "0.1.0"
 authors = ["yehuohan"]
 edition = "2018"
