@@ -26,9 +26,11 @@ pub extern "C" fn _start() -> ! {
     rcore::init();
 
     // page fault
-    //unsafe {
-    //    *(0xdeadbeef as *mut u64) = 12;
-    //};
+    unsafe {
+        let x = *(0x20478b as *mut u32);
+        //*(0x20478b as *mut u32) = 12;
+        //*(0xdeadbeef as *mut u32) = 12;
+    };
     // double fault
     //fn statck_overflow() {
     //    statck_overflow();
