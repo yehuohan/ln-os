@@ -11,16 +11,17 @@
 #![reexport_test_harness_main = "test_main"]
 
 
+extern crate rlibc; // 编译链接第三方crate lib
 use core::panic::PanicInfo;
-
-// 编译链接第三方crate lib
-extern crate rlibc;
+#[cfg(test)]
+use bootloader::{BootInfo, entry_point};
 
 // 声明模块，内容在src/<mod>.rs或src/<mod>/mod.rs文件中
 pub mod vga_buffer;
 pub mod serial;
 pub mod interrupts;
 pub mod gdt;
+pub mod memory;
 
 
 pub fn hlt_loop() -> ! {
@@ -90,13 +91,16 @@ pub fn exit_qemu(exit_code: QemuExitCode) {
     }
 }
 
+#[cfg(test)]
+entry_point!(test_kernel_main);
 
 /// cargo test的入口函数
 ///
 /// cargo test模式下，crate lib会编译出一个测试bin文件，故需要自己的_start入口函数
 #[cfg(test)]
-#[no_mangle]
-pub extern "C" fn _start() -> ! {
+//#[no_mangle]
+//pub extern "C" fn _start() -> ! {
+fn test_kernel_main(_boot_info: &'static BootInfo) -> ! {
     init();
     test_main();
     hlt_loop();

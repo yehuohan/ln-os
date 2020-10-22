@@ -1,6 +1,6 @@
 //! lnos kernel主程序入口
 //!
-//! OS Boot使用第三方库实现，这里的入口指程序已经进入内核空间运行。
+//! OS Boot使用第三方库实现，这里的入口指程序已经进入kernel空间运行。
 //!
 
 #![no_std] // 禁用Rust标准库
@@ -11,18 +11,22 @@
 
 
 use core::panic::PanicInfo;
+use bootloader::{BootInfo, entry_point};
 
 #[cfg(not(test))]
 use lnos::println;
 
 
+entry_point!(kernel_main); // 设置kernel入口函数
+
 /// Kernel入口函数
 ///
 /// _start函数使用C ABI调用，且不返回（故有`-> !` 和 `loop{}`）；
 /// crate bin需要自己的_start入口函数，包括crago run和cargo test模式下的。
-#[cfg(not(test))]
-#[no_mangle] // 禁止mangle函数名称
-pub extern "C" fn _start() -> ! {
+//#[cfg(not(test))]
+//#[no_mangle] // 禁止mangle函数名称
+//pub extern "C" fn _start() -> ! {
+fn kernel_main(boot_info: &'static BootInfo) -> ! {
     lnos::init();
 
     // page fault
@@ -41,6 +45,37 @@ pub extern "C" fn _start() -> ! {
     //    for _ in 0..10000 {}
     //    print!("-"); // deadlock
     //}
+
+    use x86_64::{structures::paging::{MapperAllSizes, Page}, VirtAddr};
+    use lnos::memory;
+
+    let pmo = VirtAddr::new(boot_info.physical_memory_offset);
+    let mut mapper = unsafe { memory::init(pmo) };
+    //let mut frame_allocator = memory::EmptyFrameAllocator;
+    let mut frame_allocator = unsafe {
+        memory::BootInfoFrameAllocator::init(&boot_info.memory_map)
+    };
+
+    //let page = Page::containing_address(VirtAddr::new(0));
+    let page = Page::containing_address(VirtAddr::new(0xdeadbeef000));
+    memory::create_mapping(page, &mut mapper, &mut frame_allocator);
+
+    let page_ptr: *mut u64 = page.start_address().as_mut_ptr();
+    unsafe {
+        page_ptr.offset(400).write_volatile(0x_f021_f077_f065_f04e); // New!
+    }
+
+    let addresses = [
+        0xb8000,
+        0x201008,
+        0x0100_0020_1a10,
+        boot_info.physical_memory_offset,
+    ];
+    for &addr in &addresses {
+        let virt = VirtAddr::new(addr);
+        let phys = mapper.translate_addr(virt);
+        lnos::println!("{:?} -> {:?}", virt, phys);
+    }
 
     lnos::hlt_loop();
 }
