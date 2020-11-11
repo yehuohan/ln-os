@@ -3,7 +3,7 @@
 
 Learning rust and os.
 
-All code from [rcore](https://github.com/rcore-os/rCore) and [blog os](https://os.phil-opp.com/).
+All code from [blog os](https://os.phil-opp.com/).
 
 
 - [rcore](https://github.com/rcore-os/rCore)
