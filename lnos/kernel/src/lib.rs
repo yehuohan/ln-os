@@ -7,10 +7,14 @@
 #![cfg_attr(test, no_main)] // 生成测试程序时，禁用Rust标准程序入口
 #![feature(custom_test_frameworks)]
 #![feature(abi_x86_interrupt)]
+#![feature(alloc_error_handler)]
+#![feature(const_mut_refs)]
+#![feature(const_in_array_repeat_expressions)]
 #![test_runner(crate::test_runner)]
 #![reexport_test_harness_main = "test_main"]
 
 
+extern crate alloc; // 编译链接alloc库（属于rust标准库）
 extern crate rlibc; // 编译链接第三方crate lib
 use core::panic::PanicInfo;
 #[cfg(test)]
@@ -22,6 +26,7 @@ pub mod serial;
 pub mod interrupts;
 pub mod gdt;
 pub mod memory;
+pub mod allocator;
 
 
 pub fn hlt_loop() -> ! {
@@ -32,7 +37,6 @@ pub fn hlt_loop() -> ! {
 
 /// kernel初始化函数
 pub fn init() {
-    println!("Hello lnos!");
     gdt::init();
     interrupts::init_idt();
     unsafe { interrupts::PICS.lock().initialize(); };

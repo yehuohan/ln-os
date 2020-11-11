@@ -10,11 +10,10 @@
 #![reexport_test_harness_main = "test_main"] // 定义测试框架入口函数
 
 
+extern crate alloc; // 编译链接alloc库（属于rust标准库）
+use alloc::{boxed::Box, vec, vec::Vec, rc::Rc};
 use core::panic::PanicInfo;
 use bootloader::{BootInfo, entry_point};
-
-#[cfg(not(test))]
-use lnos::println;
 
 
 entry_point!(kernel_main); // 设置kernel入口函数
@@ -27,6 +26,11 @@ entry_point!(kernel_main); // 设置kernel入口函数
 //#[no_mangle] // 禁止mangle函数名称
 //pub extern "C" fn _start() -> ! {
 fn kernel_main(boot_info: &'static BootInfo) -> ! {
+    use lnos::memory;
+    use lnos::allocator;
+    use x86_64::{structures::paging::{MapperAllSizes, Page}, VirtAddr};
+
+    lnos::println!("Hello lnos!");
     lnos::init();
 
     // page fault
@@ -46,15 +50,15 @@ fn kernel_main(boot_info: &'static BootInfo) -> ! {
     //    print!("-"); // deadlock
     //}
 
-    use x86_64::{structures::paging::{MapperAllSizes, Page}, VirtAddr};
-    use lnos::memory;
-
+    /* memory */
     let pmo = VirtAddr::new(boot_info.physical_memory_offset);
     let mut mapper = unsafe { memory::init(pmo) };
     //let mut frame_allocator = memory::EmptyFrameAllocator;
     let mut frame_allocator = unsafe {
         memory::BootInfoFrameAllocator::init(&boot_info.memory_map)
     };
+
+    allocator::init_heap(&mut mapper, &mut frame_allocator).expect("heap init failed");
 
     //let page = Page::containing_address(VirtAddr::new(0));
     let page = Page::containing_address(VirtAddr::new(0xdeadbeef000));
@@ -77,6 +81,20 @@ fn kernel_main(boot_info: &'static BootInfo) -> ! {
         lnos::println!("{:?} -> {:?}", virt, phys);
     }
 
+    let heap_value = Box::new(20);
+    lnos::println!("heap value at {:p}", heap_value);
+    let mut vec = Vec::new();
+    for k in 0..500 {
+        vec.push(k);
+    }
+    lnos::println!("vec at {:p}", vec.as_slice());
+
+    let ref_cnt = Rc::new(vec![1, 2, 3]);
+    let cloned_ref = ref_cnt.clone();
+    lnos::println!("current ref cnt: {}", Rc::strong_count(&cloned_ref));
+    core::mem::drop(ref_cnt);
+    lnos::println!("current ref cnt: {}", Rc::strong_count(&cloned_ref));
+
     lnos::hlt_loop();
 }
 
@@ -87,7 +105,7 @@ fn kernel_main(boot_info: &'static BootInfo) -> ! {
 #[cfg(not(test))]
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {
-    println!("{}", info);
+    lnos::println!("{}", info);
     loop {}
 }
 
