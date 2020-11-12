@@ -1,7 +1,7 @@
 
 # lnos
 
-Learning rust and os.
+Learning os in rust.
 
 All code from [blog os](https://os.phil-opp.com/).
 
