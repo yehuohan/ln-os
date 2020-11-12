@@ -25,9 +25,15 @@ entry_point!(kernel_main); // 设置kernel入口函数
 //#[cfg(not(test))]
 //#[no_mangle] // 禁止mangle函数名称
 //pub extern "C" fn _start() -> ! {
+#[allow(unreachable_code)]
+#[allow(unused_imports)]
 fn kernel_main(boot_info: &'static BootInfo) -> ! {
     use lnos::memory;
     use lnos::allocator;
+    use lnos::task::{Task, keyboard,
+        simple_executor::SimpleExecutor,
+        executor::Executor,
+    };
     use x86_64::{structures::paging::{MapperAllSizes, Page}, VirtAddr};
 
     lnos::println!("Hello lnos!");
@@ -95,7 +101,23 @@ fn kernel_main(boot_info: &'static BootInfo) -> ! {
     core::mem::drop(ref_cnt);
     lnos::println!("current ref cnt: {}", Rc::strong_count(&cloned_ref));
 
+    /* task */
+    //let mut executor = SimpleExecutor::new();
+    let mut executor = Executor::new();
+    executor.spawn(Task::new(example_task()));
+    executor.spawn(Task::new(keyboard::print_keypressed()));
+    executor.run();
+
     lnos::hlt_loop();
+}
+
+async fn async_number() -> u32 {
+    23
+}
+
+async fn example_task() {
+    let num = async_number().await;
+    lnos::println!("async number: {}", num);
 }
 
 /// kernel的painc处理函数
