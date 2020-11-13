@@ -11,8 +11,8 @@ Welcome to ln-os's documentation!
     | :doc:`ucore <ucore>`
     | :doc:`lnos <lnos/index>`
     | :doc:`linux <linux>`
-    | :doc:`RTOS: freertos <rtos-freertos>`
-    | :doc:`RTOS: rt-thread <rtos-rt-thread>`
+    | :doc:`rtos: freertos <rtos-freertos>`
+    | :doc:`rtos: rt-thread <rtos-rt-thread>`
 
 
 Indices and tables
