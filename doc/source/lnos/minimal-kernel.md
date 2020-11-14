@@ -9,3 +9,9 @@
 
 - .cargo/config.toml: 配置cargo编译参数
 - target_arch: 使用json定义OS平台参数
+
+
+## VAG
+
+使用VGA实现简单的屏幕（80x25）输出，本质上就是对内存地址0xb800进行读写。
+

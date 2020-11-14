@@ -1,5 +1,5 @@
 
 *.swp
 
-/target
-/Cargo.lock
+Cargo.lock
+target
