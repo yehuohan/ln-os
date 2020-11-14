@@ -2,6 +2,7 @@
 lnos
 ====
 
+lnos in rust.
 
     | :doc:`Minimal Kernel <minimal-kernel>`
 

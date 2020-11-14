@@ -3,7 +3,7 @@
 .PHONY: test doc
 
 test:
-	@cargo test
+	@cargo test --lib
 
 doc:
-	@cargo doc
+	@cargo doc --open

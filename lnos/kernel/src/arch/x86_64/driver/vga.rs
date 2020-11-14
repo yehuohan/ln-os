@@ -1,4 +1,4 @@
-//! # VGA模块
+//! VGA模块
 //!
 //! 实现基本打印输出
 
@@ -136,4 +136,22 @@ impl fmt::Write for Vga {
         self.write_string(s);
         Ok(())
     }
+}
+
+
+
+#[test_case]
+fn test_vga_output() {
+    use core::fmt::Write;
+    use x86_64::instructions::interrupts;
+
+    let s = "some test string that fits on a single line";
+    interrupts::without_interrupts(|| {
+        let mut vga = VGA.lock();
+        writeln!(vga, "\n{}", s).expect("writeln failed");
+        for (i, c) in s.chars().enumerate() {
+            let cell = vga.buf.cells[BUF_ROW - 2][i].read();
+            assert_eq!(char::from(cell.schar), c);
+        }
+    });
 }
