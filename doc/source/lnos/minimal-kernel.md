@@ -20,3 +20,8 @@
 
 有了基本输出，就可以实现基本kernel的测试框架。
 
+测试程序本质上又是实现一个简单的kernel，放在qemu上运行，并将测试结果输出到qemu：
+
+- 通过操作isa-debug-exit设备来实现qemu的退出；
+- 通过serial设备，访问qemu的屏幕（stdio）内容，并输出到Host主机终端；
+

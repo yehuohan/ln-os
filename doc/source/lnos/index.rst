@@ -5,6 +5,7 @@ lnos
 lnos in rust.
 
     | :doc:`Minimal Kernel <minimal-kernel>`
+    | :doc:`Interrupts <interrupts>`
 
 
 *参考*:

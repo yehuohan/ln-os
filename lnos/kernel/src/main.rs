@@ -14,3 +14,9 @@
 
 #[allow(unused_imports)]
 use lnos;
+
+// 暂时把_start中放到main.rs中实现（便于code-completion, test）
+bootloader::entry_point!(lnos_entry);
+fn lnos_entry(boot_info: &'static bootloader::BootInfo) -> ! {
+    lnos::kernel_start(boot_info);
+}
