@@ -18,7 +18,7 @@ pub const DOUBLE_FAULT_IST_INDEX: u16 = 0;
 pub const DOUBLE_FAULT_IST_STACK_SIZE: usize = 0x1000 * 5;
 
 /// 一个Cpu Core需要的相关数据
-pub struct Cpu {
+struct Cpu {
     gdt: GlobalDescriptorTable,
     tss: TaskStateSegment,
     double_fault_stack: [u8; DOUBLE_FAULT_IST_STACK_SIZE],

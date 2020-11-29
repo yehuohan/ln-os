@@ -13,15 +13,16 @@ lazy_static! {
     pub static ref VGA: Mutex<Vga> = Mutex::new(Vga {
         col: 0,
         attr: ColorCode::new(Color::Red, Color::Black),
-        buf: unsafe { &mut *(0xB8000 as *mut Buffer) },
+        buf: unsafe { &mut *(BUF_ADDR as *mut Buffer) },
     });
 }
 
-
+/// VGA地址
+pub const BUF_ADDR: u64 = 0xB8000;
 /// 屏幕高度
-const BUF_ROW: usize = 25;
+pub const BUF_ROW: usize = 25;
 /// 屏幕宽度
-const BUF_COL: usize = 80;
+pub const BUF_COL: usize = 80;
 
 /// 颜色值
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -127,6 +128,11 @@ impl Vga {
         for col in 0..BUF_COL {
             self.buf.cells[row][col].write(blank);
         }
+    }
+
+    /// 读取指定坐标的字符
+    pub fn read_byte(&self, row: usize, col: usize) -> char {
+        char::from(self.buf.cells[row][col].read().schar)
     }
 }
 

@@ -72,7 +72,7 @@ Virtual Address = 0x803FE7F5CE
 
 ## Page Talbe Entry
 
-每一个Entry占8Bytes，格式如下：
+每一个Entry占8Bytes，用来保存物理Frame的地址与属性，格式如下：
 
 ```
 | Bit(s) | Name                  | Meaning                                                                                      |
