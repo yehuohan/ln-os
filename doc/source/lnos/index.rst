@@ -7,6 +7,7 @@ lnos in rust.
     | :doc:`Minimal Kernel <minimal-kernel>`
     | :doc:`Interrupts <interrupts>`
     | :doc:`Memory Management <memory>`
+    | :doc:`Multitasking <multi-task>`
 
 
 *参考*:
