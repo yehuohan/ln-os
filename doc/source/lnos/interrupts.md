@@ -106,7 +106,7 @@ Secondary ATA ----> |____________|   Parallel Port 1----> |____________|
 
 - 死锁问题
 
-vag::VGA使用了spin::lock，当_start中使用VGA打印时，若Timer中断也使用VGA打印，则会造成死锁。
+vag::VGA使用了spin::lock，当_start中使用VGA打印时，若Timer中断也使用VGA打印，则会造成死锁（Timer中断为硬件中断，会直接获取CPU控制权，若其使用spin::lock，会导致CPU一直阻塞，从而使得_start获取不到CPU资源，也就无法spin:unlock）。
 （除非是多核，_start在一个核中运行，而Timer中断使用另一个核处理）
 
 解决方法：使用VGA时关闭中断。

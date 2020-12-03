@@ -8,6 +8,7 @@ lnos in rust.
     | :doc:`Interrupts <interrupts>`
     | :doc:`Memory Management <memory>`
     | :doc:`Multitasking <multi-task>`
+    | :doc:`Debug <debug>`
 
 
 *参考*:
