@@ -50,13 +50,14 @@ pub extern "x86-interrupt" fn timer_handler(_stack_frame: &mut InterruptStackFra
 
 /// Keyboard中断(No = 33)
 pub extern "x86-interrupt" fn keyboard_handler(_stack_frame: &mut InterruptStackFrame) {
+    /* 直接在中断中读取按键码，并处理按键
     use spin::Mutex;
     use lazy_static::lazy_static;
     use x86_64::instructions::port::Port;
     use pc_keyboard::{layouts, DecodedKey, HandleControl, Keyboard, ScancodeSet1};
 
     lazy_static! {
-        static ref KEYBOARD: Mutex<Keyboard<layouts::Us104Key, ScancodeSet1>> = 
+        static ref KEYBOARD: Mutex<Keyboard<layouts::Us104Key, ScancodeSet1>> =
             Mutex::new(Keyboard::new(
                     layouts::Us104Key,
                     ScancodeSet1,
@@ -68,7 +69,6 @@ pub extern "x86-interrupt" fn keyboard_handler(_stack_frame: &mut InterruptStack
 
     if let Ok(Some(key_event)) = keyboard.add_byte(scancode) {
         if let Some(key) = keyboard.process_keyevent(key_event) {
-            // 直接在中断里处理按键
             match key {
                 DecodedKey::Unicode(character) => print!("{}", character),
                 DecodedKey::RawKey(key) => print!("{:?}", key),
@@ -78,5 +78,16 @@ pub extern "x86-interrupt" fn keyboard_handler(_stack_frame: &mut InterruptStack
 
     unsafe {
         PICS.lock().notify_end_of_interrupt(PicIRQ::Keyboard.as_u8());
+    }
+    */
+
+    use x86_64::instructions::port::Port;
+    let mut port = Port::new(0x60); // 通过端口0x60读取PS/2 controller的数据
+    let scancode: u8 = unsafe { port.read() }; // 读取按键scancode
+    crate::driver::keyboard::append_scancode(scancode);
+
+    unsafe {
+        PICS.lock()
+            .notify_end_of_interrupt(PicIRQ::Keyboard.as_u8());
     }
 }

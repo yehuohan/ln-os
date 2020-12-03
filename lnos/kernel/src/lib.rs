@@ -23,6 +23,7 @@ extern crate rlibc; // 需要使用rlibc中的memcpy、memset等函数
 pub mod console;
 pub mod test;
 pub mod cotask;
+pub mod driver;
 
 // 设置arch
 #[cfg(target_arch = "x86_64")]

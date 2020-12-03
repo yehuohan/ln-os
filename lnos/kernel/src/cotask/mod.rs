@@ -6,6 +6,7 @@ pub mod executor;
 pub fn run() {
     let mut executor = executor::Executor::new();
     executor.spawn(task::Task::new(first_task()));
+    executor.spawn(task::Task::new(super::driver::keyboard::task_keyboard()));
     executor.run();
 }
 
