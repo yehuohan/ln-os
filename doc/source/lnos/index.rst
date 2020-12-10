@@ -4,6 +4,7 @@ lnos
 
 lnos in rust.
 
+    | :doc:`Environment <environment>`
     | :doc:`Minimal Kernel <minimal-kernel>`
     | :doc:`Interrupts <interrupts>`
     | :doc:`Memory Management <memory>`
