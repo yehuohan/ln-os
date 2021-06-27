@@ -5,7 +5,7 @@
 //! TODO 使用APIC替代8259
 
 use spin;
-use pic8259_simple::ChainedPics;
+use pic8259::ChainedPics;
 use x86_64::structures::idt::InterruptStackFrame;
 
 
@@ -40,7 +40,7 @@ pub fn init() {
 
 
 /// Timer中断(No = 32)
-pub extern "x86-interrupt" fn timer_handler(_stack_frame: &mut InterruptStackFrame) {
+pub extern "x86-interrupt" fn timer_handler(_stack_frame: InterruptStackFrame) {
     print!(".");
     unsafe {
         // 通知PIC，已经完成中断处理，不然无法响应下一个中断
@@ -49,7 +49,7 @@ pub extern "x86-interrupt" fn timer_handler(_stack_frame: &mut InterruptStackFra
 }
 
 /// Keyboard中断(No = 33)
-pub extern "x86-interrupt" fn keyboard_handler(_stack_frame: &mut InterruptStackFrame) {
+pub extern "x86-interrupt" fn keyboard_handler(_stack_frame: InterruptStackFrame) {
     /* 直接在中断中读取按键码，并处理按键
     use spin::Mutex;
     use lazy_static::lazy_static;

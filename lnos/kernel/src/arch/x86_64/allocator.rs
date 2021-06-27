@@ -71,7 +71,8 @@ pub struct GlobalHeapAllocator {
 impl GlobalHeapAllocator {
     pub const fn new() -> Self {
         Self {
-            list_heads: [None; BLOCK_SIZES.len()],
+            //list_heads: [None; BLOCK_SIZES.len()],
+            list_heads: [None, None, None, None, None, None, None, None, None],
             fallback: linked_list_allocator::Heap::empty(),
         }
     }

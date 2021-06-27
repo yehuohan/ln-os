@@ -9,7 +9,6 @@
 #![feature(abi_x86_interrupt)]
 #![feature(alloc_error_handler)]
 #![feature(const_mut_refs)]
-#![feature(const_in_array_repeat_expressions)]
 #![feature(wake_trait)]
 #![feature(custom_test_frameworks)] // 自定义测试框架（使能#![test_runner]和#[test_case]）
 #![test_runner(crate::test::runner)] // 定义测试集运行函数

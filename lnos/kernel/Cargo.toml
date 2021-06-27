@@ -8,33 +8,33 @@ edition = "2018"
 
 [dependencies]
 rlibc = "1.0.0"
-spin = "0.5.2"
+spin = "0.9.*"
 lazy_static = { version = "1.0", features = ["spin_no_std"] }
 volatile = "0.2.6"
 bitmap-allocator = { git = "https://github.com/rcore-os/bitmap-allocator" }
-linked_list_allocator = "0.8.0"
+linked_list_allocator = "0.9.0"
 pc-keyboard = "0.5.0"
 
 [dependencies.crossbeam-queue]
-version = "0.2.1"
+version = "0.3.*"
 default-features = false
 features = ["alloc"]
 
 [dependencies.conquer-once]
-version = "0.2.0"
+version = "0.3.*"
 default-features = false
 
 [dependencies.futures-util]
-version = "0.3.4"
+version = "0.3.*"
 default-features = false
 features = ["alloc"]
 
 
 [target.'cfg(target_arch = "x86_64")'.dependencies]
 bootloader = { version = "0.9.8", features = ["map_physical_memory"] }
-x86_64 = "0.12.2"
+x86_64 = "0.14.*"
 uart_16550 = "0.2.0"
-pic8259_simple = "0.2.0"
+pic8259 = "0.10.*"
 
 
 [package.metadata.bootimage]

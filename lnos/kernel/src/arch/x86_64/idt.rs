@@ -39,12 +39,12 @@ pub fn init() {
 /// Breakpoint(No = 3)可以暂停程序执行，常用于调试；
 /// 使用指令int 3（3为Breakpoint的中断号）可以触发Breakpoint。
 /// x86_64 crate中可以使用instructions::interrupts::int3()测试。
-extern "x86-interrupt" fn breakpoint_handler(stack_frame: &mut InterruptStackFrame) {
+extern "x86-interrupt" fn breakpoint_handler(stack_frame: InterruptStackFrame) {
     println!("EXCEPTION: Breakpoint\n{:#?}", stack_frame);
 }
 
 /// Page Fault(No = 14)，当访问的地址没有对应的物理地址，会触发Page Fault。
-extern "x86-interrupt" fn page_fault_handler(stack_frame: &mut InterruptStackFrame, error_code: PageFaultErrorCode) {
+extern "x86-interrupt" fn page_fault_handler(stack_frame: InterruptStackFrame, error_code: PageFaultErrorCode) {
     use x86_64::registers::control::Cr2;
 
     println!("EXCEPTION: Page Fault");
@@ -58,7 +58,7 @@ extern "x86-interrupt" fn page_fault_handler(stack_frame: &mut InterruptStackFra
 
 
 /// Double Fault(No = 8)异常处理
-extern "x86-interrupt" fn double_fault_handler(stack_frame: &mut InterruptStackFrame, error_code: u64) -> ! {
+extern "x86-interrupt" fn double_fault_handler(stack_frame: InterruptStackFrame, error_code: u64) -> ! {
     panic!("EXCEPTION: Double Fault({})\n{:#?}", error_code, stack_frame);
 }
 
